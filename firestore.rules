@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User Profile Document & Sub-collections Security
+    match /users/{userId} {
+      allow read, create, update, delete: if isOwner(userId);
+
+      // Sub-collections: tasks, routines, activity, statistics
+      match /tasks/{taskId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /routines/{routineId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /activity/{activityId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /statistics/{statId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+  }
+}
